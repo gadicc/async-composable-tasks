@@ -1,0 +1,37 @@
+{
+
+  "parser": "babel-eslint",
+  
+  "rules": {
+    "strict": 0
+  },
+
+  "parserOptions": {
+    "ecmaVersion": 7,
+    "experimentalObjectRestSpread": true,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+
+  "plugins": [
+  ],
+
+  "globals": {
+    "console": true,
+    "module": true,
+    "Promise": true
+  },
+
+  "settings": {
+  },
+
+  "env": {
+    "node": true,
+    "mocha": true
+  },
+
+  "extends": [ "eslint:recommended" ]
+
+}
