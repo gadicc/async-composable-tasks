@@ -1,8 +1,10 @@
 # composable-async-tasks
 
-Composable, async tasks built for await/async and arrow functions, with progress and parallelism.
+Composable, async tasks built for await/async and arrow functions, with progress and parallelism.  Realtime views for React.
 
-[![Circle CI](https://circleci.com/gh/gadicc/composable-async-tasks.svg?style=shield)](https://circleci.com/gh/gadicc/composable-async-tasks) [![Coverage Status](https://coveralls.io/repos/github/gadicc/composable-async-tasks/badge.svg?branch=master)](https://coveralls.io/github/gadicc/composable-async-tasks?branch=master)
+[![Circle CI](https://circleci.com/gh/gadicc/composable-async-tasks.svg?style=shield)](https://circleci.com/gh/gadicc/composable-async-tasks) [![Coverage Status](https://coveralls.io/repos/github/gadicc/composable-async-tasks/badge.svg?branch=master)](https://coveralls.io/github/gadicc/composable-async-tasks?branch=master) ![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
+
+Copyright (c) 2016 Gadi Cohen &lt;dragon@wastelands.net&gt;, released under the MIT license.
 
 ## Design Goals
 

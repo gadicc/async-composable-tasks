@@ -1,7 +1,7 @@
 {
-  "name": "skel",
+  "name": "composable-async-tasks",
   "version": "1.0.0",
-  "description": "Babel skeleton / boilerplate for NPM packages",
+  "description": "Await / async / arrow funcs, progress, parallelism, realtime views for React",
   "main": "index.js",
   "scripts": {
     "compile": "babel -d lib/ src/",
@@ -12,13 +12,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "gitrepo"
+    "url": "https://github.com/gadicc/composable-async-tasks.git"
   },
   "keywords": [
-    "babel",
-    "es6",
-    "boilerplate",
-    "skeleton"
+    "async",
+    "await",
+    "tasks",
+    "composable",
+    "progress",
+    "react"
   ],
   "author": "Gadi Cohen",
   "license": "MIT",
