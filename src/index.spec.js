@@ -1,5 +1,5 @@
 import chai from 'chai';
-import Task from '.';
+import Task from './index';
 
 const should = chai.should(); 
 
