@@ -2,7 +2,7 @@
 
 Composable, async tasks built for await/async and arrow functions, with progress and parallelism.
 
-[![Circle CI](https://circleci.com/gh/gadicc/composable-async-tasks.svg?style=shield)](https://circleci.com/gh/gadicc/composable-async-tasks) [![Coverage Status](https://coveralls.io/repos/gadicc/composable-async-tasks/badge.svg?branch=master)](https://coveralls.io/r/gadicc/composable-async-tasks?branch=master)
+[![Circle CI](https://circleci.com/gh/gadicc/composable-async-tasks.svg?style=shield)](https://circleci.com/gh/gadicc/composable-async-tasks) [![Coverage Status](https://coveralls.io/repos/github/gadicc/composable-async-tasks/badge.svg?branch=master)](https://coveralls.io/github/gadicc/composable-async-tasks?branch=master)
 
 ## Design Goals
 
