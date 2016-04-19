@@ -26,12 +26,28 @@ task.on('status', ...);
 task.run();
 ```
 
+```
 startServer 45/60 [=====================                ]
   forEachServer 2/3 [=========================          ]
     downloadDockerImage
+```
 
-function startApp(task) {
-  task.addParallel(startServer, servers);  
+```js
+await new Task(startApp).run(appData);
+
+// We could use inline arrow functions, but declaring our functions just once
+// in the root scope is more efficient, and Task() makes use of the function
+// name.  This convention is better for commonly run functions.
+
+function startApp(task, appData) {
+  const servers = await db.fetch(...);
+
+  // servers is an array, so this will run startServer() with each of the
+  // values in the array in parallel.
+  task.add(startServer, servers);
+
+  // this task will only be run when all the parallel tasks have finished
+  task.add(updateAppStatus, appData);
 }
 
 function startServer(task, data) {
@@ -39,13 +55,14 @@ function startServer(task, data) {
   task.add(buildDockerContainer, data);
   task.add(launchContainer, data);
 }
-
-new Task('startApp', startApp)
-  .on('status', updateStatus)
-  .on('complete', doSomething)
-  .run();
-
+```
 
 what about cases where we want stuff run in parallel and want another task to depend on a previous instance?  as opposed to currently where we can run a single task multiple times in parallel, wait for all of those to finish, and then move on.
 
 e.g. wasn't relevant, so far no need for this.
+
+TODO
+
+run taskA after taskB
+run taskC after taskB in parallel
+i.e. on taskB complete check children for 'after' field

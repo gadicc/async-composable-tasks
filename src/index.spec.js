@@ -1,7 +1,17 @@
+// Thanks
+// http://staxmanade.com/2015/11/testing-asyncronous-code-with-mochajs-and-es7-async-await/
+
 import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
+
 import Task from './index';
 
-const should = chai.should(); 
+chai.use(chaiAsPromised);
+chai.use(sinonChai);
+
+var should = chai.should();
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -39,15 +49,12 @@ describe('Task - constructor()', () => {
   });
 
   it('throws on any other arguments', () => {
-    (function() {
-      new Task({});
-    }).should.throw();
+    (() => new Task({})).should.throw();
   });
-
 
 });
 
-describe('Task - run()', () => {
+describe('Task - run() and add()', () => {
 
   it('runs a single func', async () => {
     let completed = false;
@@ -57,7 +64,45 @@ describe('Task - run()', () => {
     completed.should.be.true;
   });
 
-  it('runs a single child', async () => {
+  it('runs a single func with data(run)', async () => {
+    let result;
+    await new Task((task, data) => {
+      result = data;
+    }).run(5);
+    result.should.equal(5);
+  });
+
+  it('runs a single func with data from constructor and run()', async ()=> {
+    let result;
+    await new Task((task, data) => {
+      result = data;
+    }, 5).run();
+    result.should.equal(5);
+  });
+
+  it('catches ~~and rethrows~~ an error on a single func #2', async () => {
+    let task = new Task(async () => {
+      throw new Error("fake");
+    });
+
+    // Can't seem to catch this any other way
+    task.run().should.eventually.throw();
+
+    // Difficult to wait until after eventually....
+    task = new Task(async () => {
+      throw new Error("fake");
+    });
+
+    // We asserted above that this throws an error, now we ignore it.
+    try { await task.run(); } catch (err) {
+      task._err.should.equal(err);
+    }
+
+    task._state.should.equal('failed');
+    task._status.should.equal('The task has failed due to an error.');
+  });
+
+  it('runs a single, added child', async () => {
     let completed = false;
     let task = new Task();
 
@@ -67,6 +112,18 @@ describe('Task - run()', () => {
 
     await task.run();
     completed.should.be.true;
+  });
+
+  it('runs a single, added Task', async() => {
+    let completed = false;
+    let task = new Task();
+
+    task.add(new Task(() => {
+      completed = true;
+    }));
+
+    await task.run();
+    completed.should.be.true;    
   });
 
   it('runs multiple children in sequence', async () => {
@@ -114,31 +171,137 @@ describe('Task - run()', () => {
 
 describe('Task - setters and events', () => {
 
-  it('updates and emits progress', () => {
-    let task = new Task();
-    let progress = 0;
+  describe('setStatus', () => {
 
-    task.on('progress', (_progress) => {
-      progress = _progress;
-
+    it('throws on a non-string', () => {
+      let task = new Task();
+      (() => task.setStatus(1)).should.throw();
     });
 
-    task.updateProgress(50);
-    progress.should.be.equal(50);
+    it('sets and emits status', () => {
+      let task = new Task();
+      let status;
+      let desiredStatus = 'Building docker container';
+
+      task.on('status', (_status) => {
+        status = _status;
+
+      });
+
+      task.setStatus(desiredStatus);
+      status.should.be.equal(desiredStatus);
+    });
+
   });
 
-  it('sets and emits progress', () => {
-    let task = new Task();
-    let status;
-    let desiredStatus = 'Building docker container';
+  describe('updateProgress', () => {
 
-    task.on('status', (_status) => {
-      status = _status;
-
+    it('throws on a non-number or number < 0 or > 1', () => {
+      let task = new Task();
+      (() => task.updateProgress(1.1)).should.throw();
+      (() => task.updateProgress(-1.1)).should.throw();
+      (() => task.updateProgress('1')).should.throw();
     });
 
-    task.setStatus(desiredStatus);
-    status.should.be.equal(desiredStatus);
+    it('updates and emits progress', () => {
+      let task = new Task();
+      let progress = 0;
+
+      task.on('progress', (_progress) => {
+        progress = _progress;
+      });
+
+      task.updateProgress(.5);
+      progress.should.be.equal(.5);
+    });
+
+    it('updates multiple times', () => {
+      let task = new Task();
+
+      task.updateProgress(.2);
+      task._progress.should.be.equal(.2);
+
+      task.updateProgress(.5);
+      task._progress.should.be.equal(.5);
+    });
+
+  });
+
+  describe('cascading updates', () => {
+
+    it('calls parent\'s _childSetState', () => {
+      let parent = new Task();
+      let child = new Task();
+      parent.add(child);
+
+      let spy = sinon.spy();
+      parent.on('childUpdated', spy);
+      child._setState('complete');
+      spy.should.have.been.called;
+    });
+
+    it('emits root\'s _childSetState', () => {
+      let parent = new Task();
+      let child = new Task();
+      parent.add(child);
+
+      let spy = sinon.spy();
+      parent.on('treeUpdated', spy);
+      child._setState('complete');
+      spy.should.have.been.called;
+    });
+
+  });
+
+});
+
+describe('exportState', () => {
+
+  let inittedState = {
+    name: 'anonymous',
+    state: 'declared',
+    status: '',
+    progress: 0    
+  };
+
+  it('exports a task', async () => {
+    const task = new Task(() => {});
+    task.exportStateTree().should.deep.equal({
+      ...inittedState,
+      id: task._id
+    });
+  });
+
+  it('exports a task with a child', () => {
+    const task = new Task(() => {});
+    task.add(() => {});
+    task.exportStateTree().should.deep.equal({
+      ...inittedState,
+      id: task._id,
+      children: [ {
+        id: task._children[0]._id,
+        ...inittedState
+      }]
+    });
+  });
+
+  it('exports a task running in parallel', async () => {
+    const task = new Task(() => {}, [ 1 ]);
+    await task.run();
+    task.exportStateTree().should.deep.equal({
+      id: task._id,
+      name: 'anonymous',
+      state: 'completed',
+      status: '1/1 tasks completed.',
+      progress: 1,
+      parallel: [ {
+        id: task._parallel[0]._id,
+        name: 'anonymous',
+        state: 'completed',
+        status: '',
+        progress: 1
+      } ]
+    });
   });
 
 });
